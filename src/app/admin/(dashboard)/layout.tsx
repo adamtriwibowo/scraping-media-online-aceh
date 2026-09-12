@@ -2,7 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Globe, Tags, Newspaper, Rss, Settings, Radio, AudioLines } from "lucide-react";
+import {
+  LayoutDashboard,
+  Globe,
+  Tags,
+  Newspaper,
+  Rss,
+  Settings,
+  Radio,
+  AudioLines,
+  Clapperboard,
+  SquarePlay,
+} from "lucide-react";
 import { LogoutButton } from "@/components/admin/logout-button";
 import { BrandMark } from "@/components/brand-mark";
 import { cn } from "@/lib/utils";
@@ -14,6 +25,8 @@ const links = [
   { href: "/admin/keywords", label: "Kelola Keyword", icon: Tags },
   { href: "/admin/radio", label: "Kelola Radio", icon: Radio },
   { href: "/admin/cek-stream", label: "Cek Stream", icon: AudioLines },
+  { href: "/admin/video", label: "Kelola Video", icon: Clapperboard },
+  { href: "/admin/cek-video", label: "Cek Video", icon: SquarePlay },
   { href: "/admin/pengaturan", label: "Pengaturan", icon: Settings },
 ];
 

@@ -152,6 +152,25 @@ export const radioStations = pgTable(
   })
 );
 
+export const videos = pgTable(
+  "videos",
+  {
+    id: serial("id").primaryKey(),
+    title: varchar("title", { length: 300 }).notNull(),
+    youtubeUrl: text("youtube_url").notNull(),
+    youtubeId: varchar("youtube_id", { length: 20 }).notNull(),
+    thumbnailUrl: text("thumbnail_url"),
+    channelName: varchar("channel_name", { length: 200 }),
+    category: varchar("category", { length: 100 }).notNull().default("Berita"),
+    active: boolean("active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    youtubeIdUnique: uniqueIndex("videos_youtube_id_unique").on(table.youtubeId),
+  })
+);
+
 export type Site = typeof sites.$inferSelect;
 export type NewSite = typeof sites.$inferInsert;
 export type Article = typeof articles.$inferSelect;
@@ -163,3 +182,5 @@ export type ScrapeLog = typeof scrapeLogs.$inferSelect;
 export type AppSettings = typeof appSettings.$inferSelect;
 export type RadioStation = typeof radioStations.$inferSelect;
 export type NewRadioStation = typeof radioStations.$inferInsert;
+export type Video = typeof videos.$inferSelect;
+export type NewVideo = typeof videos.$inferInsert;

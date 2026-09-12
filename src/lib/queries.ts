@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, gte, ilike, lte, sql, SQL } from "drizzle-orm";
 import { getDb } from "@/db";
-import { articles, radioStations, sites } from "@/db/schema";
+import { articles, radioStations, sites, videos } from "@/db/schema";
 
 export type ArticleFilters = {
   siteId?: string;
@@ -111,6 +111,32 @@ export async function getRadioStations({ activeOnly = false }: { activeOnly?: bo
     .from(radioStations)
     .where(activeOnly ? eq(radioStations.active, true) : undefined)
     .orderBy(asc(radioStations.name));
+}
+
+export async function getVideos({
+  activeOnly = false,
+  category,
+}: { activeOnly?: boolean; category?: string } = {}) {
+  const db = getDb();
+  const conditions: SQL[] = [];
+  if (activeOnly) conditions.push(eq(videos.active, true));
+  if (category) conditions.push(eq(videos.category, category));
+
+  return db
+    .select()
+    .from(videos)
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .orderBy(desc(videos.createdAt));
+}
+
+export async function getVideoCategories() {
+  const db = getDb();
+  const rows = await db
+    .selectDistinct({ category: videos.category })
+    .from(videos)
+    .where(eq(videos.active, true))
+    .orderBy(asc(videos.category));
+  return rows.map((r) => r.category);
 }
 
 export type StatsGranularity = "day" | "month" | "year";
