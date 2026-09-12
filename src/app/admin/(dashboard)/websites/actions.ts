@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "@/db";
 import { sites } from "@/db/schema";
@@ -28,6 +28,19 @@ export async function createSite(formData: FormData) {
   }
 
   const db = getDb();
+
+  const [existing] = await db
+    .select({ id: sites.id })
+    .from(sites)
+    .where(
+      parsed.data.rssUrl
+        ? or(eq(sites.url, parsed.data.url), eq(sites.url, parsed.data.rssUrl))
+        : eq(sites.url, parsed.data.url)
+    );
+  if (existing) {
+    return { error: "Website dengan URL ini sudah terdaftar di database." };
+  }
+
   await db.insert(sites).values({
     name: parsed.data.name,
     url: parsed.data.url,

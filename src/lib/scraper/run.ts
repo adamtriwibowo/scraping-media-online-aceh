@@ -4,16 +4,21 @@ import { articles, keywords, scrapeJobs, scrapeLogs, sites } from "@/db/schema";
 import { scrapeRss } from "./rss";
 import { scrapeHomepage } from "./html";
 import { matchKeywords } from "./keywords";
+import { getSettings } from "@/lib/settings";
 import type { ScrapedItem } from "./types";
 
-const CONCURRENCY = 5;
-
-async function processSite(site: typeof sites.$inferSelect, activeKeywords: typeof keywords.$inferSelect[]) {
+async function processSite(
+  site: typeof sites.$inferSelect,
+  activeKeywords: typeof keywords.$inferSelect[],
+  timeoutMs: number
+) {
   const db = getDb();
   let items: ScrapedItem[] = [];
 
   try {
-    items = site.rssUrl ? await scrapeRss(site.rssUrl) : await scrapeHomepage(site.url);
+    items = site.rssUrl
+      ? await scrapeRss(site.rssUrl, timeoutMs)
+      : await scrapeHomepage(site.url, timeoutMs);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown scraping error";
     await db
@@ -80,6 +85,7 @@ async function runInBatches<T, R>(items: T[], size: number, fn: (item: T) => Pro
 
 export async function runScrapeJob(trigger: "cron" | "manual") {
   const db = getDb();
+  const settings = await getSettings();
 
   const [job] = await db
     .insert(scrapeJobs)
@@ -89,8 +95,8 @@ export async function runScrapeJob(trigger: "cron" | "manual") {
   const activeSites = await db.select().from(sites).where(eq(sites.active, true));
   const activeKeywords = await db.select().from(keywords).where(eq(keywords.active, true));
 
-  const results = await runInBatches(activeSites, CONCURRENCY, (site) =>
-    processSite(site, activeKeywords)
+  const results = await runInBatches(activeSites, settings.scrapeConcurrency, (site) =>
+    processSite(site, activeKeywords, settings.scrapeTimeoutMs)
   );
 
   const logsToInsert = results.map((r) => ({

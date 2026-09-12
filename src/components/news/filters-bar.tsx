@@ -50,7 +50,7 @@ export function FiltersBar({ sites }: { sites: SiteOption[] }) {
   const exportHref = `/api/export?${searchParams.toString()}`;
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-sm">
+    <div className="flex flex-col gap-3 border border-border p-4">
       <div className="flex flex-wrap items-center gap-2">
         <Select
           value={searchParams.get("siteId") ?? "all"}

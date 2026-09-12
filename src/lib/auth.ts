@@ -1,6 +1,7 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
+import { getSettings } from "@/lib/settings";
 
 const COOKIE_NAME = "serunee_session";
 const SESSION_DURATION_SECONDS = 60 * 60 * 12; // 12 hours
@@ -14,11 +15,10 @@ function getSecretKey() {
 }
 
 export async function verifyAdminPassword(username: string, password: string) {
-  const expectedUsername = process.env.ADMIN_USERNAME;
-  const expectedHash = process.env.ADMIN_PASSWORD_HASH;
-  if (!expectedUsername || !expectedHash) return false;
-  if (username !== expectedUsername) return false;
-  return bcrypt.compare(password, expectedHash);
+  const settings = await getSettings();
+  if (!settings.adminUsername || !settings.adminPasswordHash) return false;
+  if (username !== settings.adminUsername) return false;
+  return bcrypt.compare(password, settings.adminPasswordHash);
 }
 
 export async function createSession(username: string) {

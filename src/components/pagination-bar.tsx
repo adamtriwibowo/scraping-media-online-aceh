@@ -26,8 +26,8 @@ export function PaginationBar({
 
   return (
     <div className="flex items-center justify-between px-1 py-3 text-sm text-muted-foreground">
-      <span>
-        Menampilkan {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, total)} dari {total} berita
+      <span className="font-mono text-xs tabular-figures">
+        {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)} dari {total} berita
       </span>
       <div className="flex items-center gap-2">
         <Button
@@ -40,8 +40,8 @@ export function PaginationBar({
           <ChevronLeft className="h-4 w-4" />
           Sebelumnya
         </Button>
-        <span className="text-xs">
-          Hal {page} / {totalPages}
+        <span className="font-mono text-xs tabular-figures">
+          {page} / {totalPages}
         </span>
         <Button
           variant="outline"

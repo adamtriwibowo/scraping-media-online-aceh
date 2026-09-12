@@ -23,8 +23,8 @@ function resolveUrl(href: string, base: string) {
  * Best-effort fallback for sites without an RSS feed: pulls headline-like
  * anchors from the homepage. Heuristic, not guaranteed to match every layout.
  */
-export async function scrapeHomepage(siteUrl: string): Promise<ScrapedItem[]> {
-  const res = await fetchWithTimeout(siteUrl);
+export async function scrapeHomepage(siteUrl: string, timeoutMs?: number): Promise<ScrapedItem[]> {
+  const res = await fetchWithTimeout(siteUrl, timeoutMs);
   if (!res.ok) {
     throw new Error(`Homepage fetch failed with status ${res.status}`);
   }

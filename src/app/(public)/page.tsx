@@ -2,7 +2,8 @@ import { getArticles, getSitesWithStats, getStatsSummary } from "@/lib/queries";
 import { FiltersBar } from "@/components/news/filters-bar";
 import { NewsTable } from "@/components/news/news-table";
 import { PaginationBar } from "@/components/pagination-bar";
-import { Card, CardContent } from "@/components/ui/card";
+import { StatRow, Stat } from "@/components/stat-row";
+import { getSettings } from "@/lib/settings";
 import { Newspaper, Globe2, MapPin, Tags } from "lucide-react";
 
 export default async function HomePage({
@@ -13,7 +14,7 @@ export default async function HomePage({
   const params = await searchParams;
   const page = Number(params.page ?? "1") || 1;
 
-  const [{ rows, total }, sites, stats] = await Promise.all([
+  const [{ rows, total }, sites, stats, settings] = await Promise.all([
     getArticles({
       siteId: params.siteId,
       category: params.category,
@@ -26,6 +27,7 @@ export default async function HomePage({
     }),
     getSitesWithStats(),
     getStatsSummary(),
+    getSettings(),
   ]);
 
   const localCount = sites.filter((s) => s.category === "lokal").length;
@@ -34,18 +36,16 @@ export default async function HomePage({
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Semua Berita</h1>
-        <p className="text-sm text-muted-foreground">
-          Agregasi berita real-time dari media lokal Aceh dan nasional.
-        </p>
+        <h1 className="font-heading text-[1.7rem] italic tracking-tight text-ink">Semua Berita</h1>
+        <p className="text-sm text-muted-foreground">{settings.siteDescription}</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatCard icon={Newspaper} label="Total Berita" value={stats.totals.totalArticles} />
-        <StatCard icon={Globe2} label="Sumber Aktif" value={stats.totals.totalSites} />
-        <StatCard icon={MapPin} label="Media Lokal" value={localCount} />
-        <StatCard icon={Tags} label="Media Nasional" value={nasionalCount} />
-      </div>
+      <StatRow>
+        <Stat icon={Newspaper} label="Total berita" value={stats.totals.totalArticles} accent />
+        <Stat icon={Globe2} label="Sumber aktif" value={stats.totals.totalSites} />
+        <Stat icon={MapPin} label="Media lokal" value={localCount} />
+        <Stat icon={Tags} label="Media nasional" value={nasionalCount} />
+      </StatRow>
 
       <FiltersBar sites={sites.map((s) => ({ id: s.id, name: s.name, category: s.category }))} />
 
@@ -53,29 +53,5 @@ export default async function HomePage({
 
       {total > 0 && <PaginationBar page={page} pageSize={25} total={total} />}
     </div>
-  );
-}
-
-function StatCard({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: number;
-}) {
-  return (
-    <Card>
-      <CardContent className="flex items-center gap-3 p-4">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          <Icon className="h-4.5 w-4.5" />
-        </div>
-        <div>
-          <p className="text-lg font-semibold leading-none">{value.toLocaleString("id-ID")}</p>
-          <p className="text-xs text-muted-foreground">{label}</p>
-        </div>
-      </CardContent>
-    </Card>
   );
 }

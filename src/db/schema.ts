@@ -117,6 +117,22 @@ export const scrapeLogsRelations = relations(scrapeLogs, ({ one }) => ({
   site: one(sites, { fields: [scrapeLogs.siteId], references: [sites.id] }),
 }));
 
+// Singleton row (id is always 1) holding admin-editable app configuration.
+// Bootstrapped on first read from ADMIN_USERNAME / ADMIN_PASSWORD_HASH env
+// vars — see src/lib/settings.ts.
+export const appSettings = pgTable("app_settings", {
+  id: integer("id").primaryKey(),
+  adminUsername: varchar("admin_username", { length: 100 }).notNull(),
+  adminPasswordHash: text("admin_password_hash").notNull(),
+  scrapeConcurrency: integer("scrape_concurrency").notNull().default(5),
+  scrapeTimeoutMs: integer("scrape_timeout_ms").notNull().default(12000),
+  siteTitle: varchar("site_title", { length: 200 }).notNull().default("Serunee"),
+  siteDescription: text("site_description")
+    .notNull()
+    .default("Agregasi berita real-time dari media lokal Aceh dan nasional."),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export type Site = typeof sites.$inferSelect;
 export type NewSite = typeof sites.$inferInsert;
 export type Article = typeof articles.$inferSelect;
@@ -125,3 +141,4 @@ export type Keyword = typeof keywords.$inferSelect;
 export type NewKeyword = typeof keywords.$inferInsert;
 export type ScrapeJob = typeof scrapeJobs.$inferSelect;
 export type ScrapeLog = typeof scrapeLogs.$inferSelect;
+export type AppSettings = typeof appSettings.$inferSelect;

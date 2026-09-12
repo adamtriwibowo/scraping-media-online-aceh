@@ -15,7 +15,7 @@ export default async function StatistikPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Statistik</h1>
+        <h1 className="font-heading text-[1.7rem] italic tracking-tight text-ink">Statistik</h1>
         <p className="text-sm text-muted-foreground">
           Ringkasan visual dari {stats.totals.totalArticles.toLocaleString("id-ID")} berita yang
           terkumpul dari {stats.totals.totalSites} sumber.

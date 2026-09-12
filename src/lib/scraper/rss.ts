@@ -2,12 +2,10 @@ import Parser from "rss-parser";
 import { fetchWithTimeout } from "./fetch-with-timeout";
 import type { ScrapedItem } from "./types";
 
-const parser = new Parser({
-  timeout: 12000,
-  headers: {
-    "User-Agent": "Mozilla/5.0 (compatible; SeruneeBot/1.0; +https://serunee.local/bot)",
-  },
-});
+// The feed XML is always fetched via fetchWithTimeout below and handed to
+// parseString, so this instance never issues its own HTTP requests — no
+// headers/timeout options apply here (those only affect parser.parseURL).
+const parser = new Parser();
 
 function extractImage(item: Parser.Item & Record<string, unknown>): string | undefined {
   const enclosure = item.enclosure as { url?: string } | undefined;
@@ -21,8 +19,8 @@ function extractImage(item: Parser.Item & Record<string, unknown>): string | und
   return match?.[1];
 }
 
-export async function scrapeRss(rssUrl: string): Promise<ScrapedItem[]> {
-  const res = await fetchWithTimeout(rssUrl);
+export async function scrapeRss(rssUrl: string, timeoutMs?: number): Promise<ScrapedItem[]> {
+  const res = await fetchWithTimeout(rssUrl, timeoutMs);
   if (!res.ok) {
     throw new Error(`RSS fetch failed with status ${res.status}`);
   }

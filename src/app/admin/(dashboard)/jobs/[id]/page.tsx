@@ -4,9 +4,9 @@ import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { scrapeJobs } from "@/db/schema";
 import { getScrapeLogsForJob } from "@/lib/scrape-queries";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { StatRow, Stat } from "@/components/stat-row";
 import { ArrowLeft } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 function formatDate(date: Date | string | null) {
   if (!date) return "-";
@@ -19,6 +19,13 @@ function formatDate(date: Date | string | null) {
     second: "2-digit",
   });
 }
+
+const statusStyle: Record<string, string> = {
+  success: "bg-good/12 text-good",
+  partial: "bg-brass/15 text-brass-strong",
+  error: "bg-destructive/12 text-destructive",
+  running: "bg-teal/12 text-teal-strong",
+};
 
 export default async function JobDetailPage({
   params,
@@ -37,72 +44,57 @@ export default async function JobDetailPage({
     <div className="flex flex-col gap-4">
       <Link
         href="/admin"
-        className="flex w-fit items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+        className="flex w-fit items-center gap-1.5 text-sm text-muted-foreground hover:text-ink"
       >
         <ArrowLeft className="h-4 w-4" />
-        Kembali ke Dashboard
+        Kembali ke dashboard
       </Link>
 
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">Detail Job #{job.id}</h1>
-        <Badge>{job.status}</Badge>
-        <Badge variant="outline">{job.trigger === "manual" ? "Manual" : "Terjadwal"}</Badge>
+        <h1 className="font-heading text-[1.7rem] italic tracking-tight text-ink">Detail Job #{job.id}</h1>
+        <span className={cn("px-1.5 py-0.5 text-[11px] leading-none", statusStyle[job.status] ?? "bg-muted text-muted-foreground")}>
+          {job.status}
+        </span>
+        <span className="border border-border px-1.5 py-0.5 text-[11px] leading-none text-muted-foreground">
+          {job.trigger === "manual" ? "Manual" : "Terjadwal"}
+        </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatBlock label="Situs Diproses" value={job.sitesProcessed} />
-        <StatBlock label="Berita Ditemukan" value={job.articlesFound} />
-        <StatBlock label="Berita Baru" value={job.articlesNew} />
-        <StatBlock label="Mulai" value={formatDate(job.startedAt)} />
-      </div>
+      <StatRow>
+        <Stat label="Situs diproses" value={job.sitesProcessed} accent />
+        <Stat label="Berita ditemukan" value={job.articlesFound} />
+        <Stat label="Berita baru" value={job.articlesNew} />
+        <Stat label="Mulai" value={formatDate(job.startedAt)} />
+      </StatRow>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Log per Situs</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="divide-y divide-border">
-            {logs.length === 0 && (
-              <p className="p-4 text-sm text-muted-foreground">Tidak ada log untuk job ini.</p>
-            )}
-            {logs.map((log) => (
-              <div key={log.id} className="flex flex-col gap-1 px-4 py-3 text-sm">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-medium">{log.siteName ?? "Situs terhapus"}</span>
-                  <Badge
-                    variant={
-                      log.status === "success"
-                        ? "default"
-                        : log.status === "error"
-                          ? "destructive"
-                          : "secondary"
-                    }
-                    className="text-[10px]"
-                  >
-                    {log.status}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                  <span>{log.articlesFound} ditemukan</span>
-                  <span>{log.articlesNew} baru</span>
-                </div>
-                {log.message && <p className="text-xs text-destructive">{log.message}</p>}
+      <div>
+        <h2 className="mb-2 text-[13px] font-medium text-ink">Log per situs</h2>
+        <div className="divide-y divide-border border border-border">
+          {logs.length === 0 && (
+            <p className="p-4 text-sm text-muted-foreground">Tidak ada log untuk job ini.</p>
+          )}
+          {logs.map((log) => (
+            <div key={log.id} className="flex flex-col gap-1 px-4 py-3 text-sm">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-medium text-ink">{log.siteName ?? "Situs terhapus"}</span>
+                <span
+                  className={cn(
+                    "px-1.5 py-0.5 text-[10px] leading-none",
+                    statusStyle[log.status] ?? "bg-muted text-muted-foreground"
+                  )}
+                >
+                  {log.status}
+                </span>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              <div className="flex items-center gap-4 font-mono text-xs text-muted-foreground tabular-figures">
+                <span>{log.articlesFound} ditemukan</span>
+                <span>{log.articlesNew} baru</span>
+              </div>
+              {log.message && <p className="text-xs text-destructive">{log.message}</p>}
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
-  );
-}
-
-function StatBlock({ label, value }: { label: string; value: string | number }) {
-  return (
-    <Card>
-      <CardContent className="p-4">
-        <p className="text-lg font-semibold leading-none">{value}</p>
-        <p className="mt-1 text-xs text-muted-foreground">{label}</p>
-      </CardContent>
-    </Card>
   );
 }

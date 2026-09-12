@@ -5,8 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ShieldCheck, Loader2 } from "lucide-react";
+import { BrandMark } from "@/components/brand-mark";
+import { Loader2 } from "lucide-react";
 
 function LoginForm() {
   const router = useRouter();
@@ -63,7 +63,7 @@ function LoginForm() {
         />
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
-      <Button type="submit" disabled={loading} className="gap-2">
+      <Button type="submit" disabled={loading} className="mt-1 gap-2">
         {loading && <Loader2 className="h-4 w-4 animate-spin" />}
         Masuk
       </Button>
@@ -73,21 +73,21 @@ function LoginForm() {
 
 export default function AdminLoginPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
-      <Card className="w-full max-w-sm shadow-lg">
-        <CardHeader className="items-center text-center">
-          <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <ShieldCheck className="h-6 w-6" />
+    <div className="flex min-h-screen items-center justify-center bg-ink px-4">
+      <div className="w-full max-w-sm border border-white/10 bg-paper p-8">
+        <div className="mb-6 flex flex-col items-center gap-3 text-center">
+          <BrandMark className="h-8 w-8 text-brass" />
+          <div>
+            <p className="font-heading text-2xl italic text-ink">Serunee</p>
+            <p className="mt-1 text-[13px] text-muted-foreground">
+              Masuk untuk mengelola scraping, website, dan keyword.
+            </p>
           </div>
-          <CardTitle>Admin Serunee 3.0</CardTitle>
-          <CardDescription>Masuk untuk mengelola scraping, website, dan keyword.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Suspense fallback={<div className="h-[196px]" />}>
-            <LoginForm />
-          </Suspense>
-        </CardContent>
-      </Card>
+        </div>
+        <Suspense fallback={<div className="h-[196px]" />}>
+          <LoginForm />
+        </Suspense>
+      </div>
     </div>
   );
 }

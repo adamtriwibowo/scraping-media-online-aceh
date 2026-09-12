@@ -107,52 +107,52 @@ export async function getSitesWithStats() {
 export async function getStatsSummary() {
   const db = getDb();
 
-  const [totals] = await db
-    .select({
-      totalArticles: sql<number>`count(*)::int`,
-      totalSites: sql<number>`count(distinct ${articles.siteId})::int`,
-    })
-    .from(articles);
-
-  const byCategory = await db
-    .select({
-      category: sites.category,
-      count: sql<number>`count(*)::int`,
-    })
-    .from(articles)
-    .innerJoin(sites, eq(articles.siteId, sites.id))
-    .groupBy(sites.category);
-
-  const bySite = await db
-    .select({
-      siteName: sites.name,
-      count: sql<number>`count(*)::int`,
-    })
-    .from(articles)
-    .innerJoin(sites, eq(articles.siteId, sites.id))
-    .groupBy(sites.name)
-    .orderBy(desc(sql`count(*)`))
-    .limit(15);
-
-  const byDay = await db
-    .select({
-      day: sql<string>`to_char(coalesce(${articles.publishedAt}, ${articles.scrapedAt}), 'YYYY-MM-DD')`,
-      count: sql<number>`count(*)::int`,
-    })
-    .from(articles)
-    .where(sql`coalesce(${articles.publishedAt}, ${articles.scrapedAt}) > now() - interval '30 days'`)
-    .groupBy(sql`to_char(coalesce(${articles.publishedAt}, ${articles.scrapedAt}), 'YYYY-MM-DD')`)
-    .orderBy(sql`to_char(coalesce(${articles.publishedAt}, ${articles.scrapedAt}), 'YYYY-MM-DD')`);
-
-  const topKeywords = await db
-    .select({
-      keyword: sql<string>`unnest(${articles.matchedKeywords})`,
-      count: sql<number>`count(*)::int`,
-    })
-    .from(articles)
-    .groupBy(sql`unnest(${articles.matchedKeywords})`)
-    .orderBy(desc(sql`count(*)`))
-    .limit(10);
+  // Each of these is an independent round-trip to Neon over HTTP — running
+  // them concurrently instead of one-by-one turns 5x network latency into 1x.
+  const [[totals], byCategory, bySite, byDay, topKeywords] = await Promise.all([
+    db
+      .select({
+        totalArticles: sql<number>`count(*)::int`,
+        totalSites: sql<number>`count(distinct ${articles.siteId})::int`,
+      })
+      .from(articles),
+    db
+      .select({
+        category: sites.category,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(articles)
+      .innerJoin(sites, eq(articles.siteId, sites.id))
+      .groupBy(sites.category),
+    db
+      .select({
+        siteName: sites.name,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(articles)
+      .innerJoin(sites, eq(articles.siteId, sites.id))
+      .groupBy(sites.name)
+      .orderBy(desc(sql`count(*)`))
+      .limit(15),
+    db
+      .select({
+        day: sql<string>`to_char(coalesce(${articles.publishedAt}, ${articles.scrapedAt}), 'YYYY-MM-DD')`,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(articles)
+      .where(sql`coalesce(${articles.publishedAt}, ${articles.scrapedAt}) > now() - interval '30 days'`)
+      .groupBy(sql`to_char(coalesce(${articles.publishedAt}, ${articles.scrapedAt}), 'YYYY-MM-DD')`)
+      .orderBy(sql`to_char(coalesce(${articles.publishedAt}, ${articles.scrapedAt}), 'YYYY-MM-DD')`),
+    db
+      .select({
+        keyword: sql<string>`unnest(${articles.matchedKeywords})`,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(articles)
+      .groupBy(sql`unnest(${articles.matchedKeywords})`)
+      .orderBy(desc(sql`count(*)`))
+      .limit(10),
+  ]);
 
   return { totals, byCategory, bySite, byDay, topKeywords };
 }
