@@ -7,12 +7,10 @@ import {
   Globe,
   Tags,
   Newspaper,
-  Rss,
   Settings,
   Radio,
-  AudioLines,
   Clapperboard,
-  SquarePlay,
+  ScanSearch,
 } from "lucide-react";
 import { LogoutButton } from "@/components/admin/logout-button";
 import { BrandMark } from "@/components/brand-mark";
@@ -21,12 +19,10 @@ import { cn } from "@/lib/utils";
 const links = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/websites", label: "Kelola Website", icon: Globe },
-  { href: "/admin/cek-feed", label: "Cek Feed", icon: Rss },
   { href: "/admin/keywords", label: "Kelola Keyword", icon: Tags },
   { href: "/admin/radio", label: "Kelola Radio", icon: Radio },
-  { href: "/admin/cek-stream", label: "Cek Stream", icon: AudioLines },
   { href: "/admin/video", label: "Kelola Video", icon: Clapperboard },
-  { href: "/admin/cek-video", label: "Cek Video", icon: SquarePlay },
+  { href: "/admin/cek-url", label: "Cek URL", icon: ScanSearch },
   { href: "/admin/pengaturan", label: "Pengaturan", icon: Settings },
 ];
 
