@@ -1,6 +1,6 @@
-import { and, desc, eq, gte, ilike, lte, sql, SQL } from "drizzle-orm";
+import { and, asc, desc, eq, gte, ilike, lte, sql, SQL } from "drizzle-orm";
 import { getDb } from "@/db";
-import { articles, sites } from "@/db/schema";
+import { articles, radioStations, sites } from "@/db/schema";
 
 export type ArticleFilters = {
   siteId?: string;
@@ -102,6 +102,15 @@ export async function getArticles(filters: ArticleFilters) {
 export async function getSitesWithStats() {
   const db = getDb();
   return db.select().from(sites).orderBy(desc(sites.articleCount));
+}
+
+export async function getRadioStations({ activeOnly = false }: { activeOnly?: boolean } = {}) {
+  const db = getDb();
+  return db
+    .select()
+    .from(radioStations)
+    .where(activeOnly ? eq(radioStations.active, true) : undefined)
+    .orderBy(asc(radioStations.name));
 }
 
 export type StatsGranularity = "day" | "month" | "year";

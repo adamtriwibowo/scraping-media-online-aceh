@@ -133,6 +133,25 @@ export const appSettings = pgTable("app_settings", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const radioStations = pgTable(
+  "radio_stations",
+  {
+    id: serial("id").primaryKey(),
+    name: varchar("name", { length: 200 }).notNull(),
+    frequency: varchar("frequency", { length: 50 }),
+    streamUrl: text("stream_url").notNull(),
+    websiteUrl: text("website_url"),
+    genre: varchar("genre", { length: 100 }),
+    city: varchar("city", { length: 100 }).notNull().default("Banda Aceh"),
+    active: boolean("active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    streamUrlUnique: uniqueIndex("radio_stations_stream_url_unique").on(table.streamUrl),
+  })
+);
+
 export type Site = typeof sites.$inferSelect;
 export type NewSite = typeof sites.$inferInsert;
 export type Article = typeof articles.$inferSelect;
@@ -142,3 +161,5 @@ export type NewKeyword = typeof keywords.$inferInsert;
 export type ScrapeJob = typeof scrapeJobs.$inferSelect;
 export type ScrapeLog = typeof scrapeLogs.$inferSelect;
 export type AppSettings = typeof appSettings.$inferSelect;
+export type RadioStation = typeof radioStations.$inferSelect;
+export type NewRadioStation = typeof radioStations.$inferInsert;
