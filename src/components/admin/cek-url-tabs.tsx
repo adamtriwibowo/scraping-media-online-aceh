@@ -5,10 +5,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FeedChecker } from "@/components/admin/feed-checker";
 import { StreamChecker } from "@/components/admin/stream-checker";
 import { VideoChecker } from "@/components/admin/video-checker";
-import { Rss, AudioLines, SquarePlay } from "lucide-react";
+import { SocialPostChecker } from "@/components/admin/social-post-checker";
+import { Rss, AudioLines, SquarePlay, AtSign } from "lucide-react";
 
-const TABS = ["feed", "stream", "video"] as const;
+const TABS = ["feed", "stream", "video", "social"] as const;
 type Tab = (typeof TABS)[number];
+
+const triggerClass =
+  "gap-1.5 rounded-none border-0 px-3 py-2 text-muted-foreground data-active:bg-transparent data-active:text-brass data-active:shadow-none after:bg-brass!";
 
 export function CekUrlTabs() {
   const router = useRouter();
@@ -25,27 +29,22 @@ export function CekUrlTabs() {
 
   return (
     <Tabs value={activeTab} onValueChange={handleChange}>
-      <TabsList variant="line" className="gap-1 border-b border-border p-0">
-        <TabsTrigger
-          value="feed"
-          className="gap-1.5 rounded-none border-0 px-3 py-2 text-muted-foreground data-active:bg-transparent data-active:text-brass data-active:shadow-none after:bg-brass!"
-        >
+      <TabsList variant="line" className="flex-wrap gap-1 border-b border-border p-0">
+        <TabsTrigger value="feed" className={triggerClass}>
           <Rss className="h-3.5 w-3.5" />
           Feed Berita
         </TabsTrigger>
-        <TabsTrigger
-          value="stream"
-          className="gap-1.5 rounded-none border-0 px-3 py-2 text-muted-foreground data-active:bg-transparent data-active:text-brass data-active:shadow-none after:bg-brass!"
-        >
+        <TabsTrigger value="stream" className={triggerClass}>
           <AudioLines className="h-3.5 w-3.5" />
           Stream Radio
         </TabsTrigger>
-        <TabsTrigger
-          value="video"
-          className="gap-1.5 rounded-none border-0 px-3 py-2 text-muted-foreground data-active:bg-transparent data-active:text-brass data-active:shadow-none after:bg-brass!"
-        >
+        <TabsTrigger value="video" className={triggerClass}>
           <SquarePlay className="h-3.5 w-3.5" />
           Video YouTube
+        </TabsTrigger>
+        <TabsTrigger value="social" className={triggerClass}>
+          <AtSign className="h-3.5 w-3.5" />
+          Post Sosial
         </TabsTrigger>
       </TabsList>
 
@@ -57,6 +56,9 @@ export function CekUrlTabs() {
       </TabsContent>
       <TabsContent value="video" className="pt-5">
         <VideoChecker />
+      </TabsContent>
+      <TabsContent value="social" className="pt-5">
+        <SocialPostChecker />
       </TabsContent>
     </Tabs>
   );

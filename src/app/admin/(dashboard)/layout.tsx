@@ -11,6 +11,7 @@ import {
   Radio,
   Clapperboard,
   ScanSearch,
+  AtSign,
 } from "lucide-react";
 import { LogoutButton } from "@/components/admin/logout-button";
 import { BrandMark } from "@/components/brand-mark";
@@ -22,6 +23,7 @@ const links = [
   { href: "/admin/keywords", label: "Kelola Keyword", icon: Tags },
   { href: "/admin/radio", label: "Kelola Radio", icon: Radio },
   { href: "/admin/video", label: "Kelola Video", icon: Clapperboard },
+  { href: "/admin/media-sosial", label: "Kelola Media Sosial", icon: AtSign },
   { href: "/admin/cek-url", label: "Cek URL", icon: ScanSearch },
   { href: "/admin/pengaturan", label: "Pengaturan", icon: Settings },
 ];

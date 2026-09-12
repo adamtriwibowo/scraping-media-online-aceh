@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, gte, ilike, lte, sql, SQL } from "drizzle-orm";
 import { getDb } from "@/db";
-import { articles, radioStations, sites, videos } from "@/db/schema";
+import { articles, radioStations, sites, socialPosts, videos } from "@/db/schema";
 
 export type ArticleFilters = {
   siteId?: string;
@@ -136,6 +136,32 @@ export async function getVideoCategories() {
     .from(videos)
     .where(eq(videos.active, true))
     .orderBy(asc(videos.category));
+  return rows.map((r) => r.category);
+}
+
+export async function getSocialPosts({
+  activeOnly = false,
+  category,
+}: { activeOnly?: boolean; category?: string } = {}) {
+  const db = getDb();
+  const conditions: SQL[] = [];
+  if (activeOnly) conditions.push(eq(socialPosts.active, true));
+  if (category) conditions.push(eq(socialPosts.category, category));
+
+  return db
+    .select()
+    .from(socialPosts)
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .orderBy(desc(socialPosts.createdAt));
+}
+
+export async function getSocialPostCategories() {
+  const db = getDb();
+  const rows = await db
+    .selectDistinct({ category: socialPosts.category })
+    .from(socialPosts)
+    .where(eq(socialPosts.active, true))
+    .orderBy(asc(socialPosts.category));
   return rows.map((r) => r.category);
 }
 

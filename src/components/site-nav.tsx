@@ -4,13 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { BrandMark } from "@/components/brand-mark";
-import { Newspaper, Globe, BarChart3, Tags, ShieldCheck, Radio, Clapperboard } from "lucide-react";
+import { Newspaper, Globe, BarChart3, Tags, ShieldCheck, Radio, Clapperboard, AtSign } from "lucide-react";
 
 const links = [
   { href: "/", label: "Semua Berita", icon: Newspaper },
   { href: "/websites", label: "Website", icon: Globe },
   { href: "/radio", label: "Radio", icon: Radio },
   { href: "/video", label: "Video", icon: Clapperboard },
+  { href: "/media-sosial", label: "Sosial", icon: AtSign },
   { href: "/statistik", label: "Statistik", icon: BarChart3 },
   { href: "/keywords", label: "Keywords", icon: Tags },
 ];

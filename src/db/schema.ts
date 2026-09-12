@@ -12,6 +12,7 @@ import {
 import { relations } from "drizzle-orm";
 
 export const siteCategoryEnum = pgEnum("site_category", ["lokal", "nasional"]);
+export const socialPlatformEnum = pgEnum("social_platform", ["tiktok", "x"]);
 export const scrapeStatusEnum = pgEnum("scrape_status", [
   "running",
   "success",
@@ -171,6 +172,27 @@ export const videos = pgTable(
   })
 );
 
+export const socialPosts = pgTable(
+  "social_posts",
+  {
+    id: serial("id").primaryKey(),
+    platform: socialPlatformEnum("platform").notNull(),
+    postUrl: text("post_url").notNull(),
+    embedHtml: text("embed_html").notNull(),
+    authorName: varchar("author_name", { length: 200 }),
+    authorUrl: text("author_url"),
+    caption: text("caption"),
+    thumbnailUrl: text("thumbnail_url"),
+    category: varchar("category", { length: 100 }).notNull().default("Berita"),
+    active: boolean("active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    postUrlUnique: uniqueIndex("social_posts_post_url_unique").on(table.postUrl),
+  })
+);
+
 export type Site = typeof sites.$inferSelect;
 export type NewSite = typeof sites.$inferInsert;
 export type Article = typeof articles.$inferSelect;
@@ -184,3 +206,5 @@ export type RadioStation = typeof radioStations.$inferSelect;
 export type NewRadioStation = typeof radioStations.$inferInsert;
 export type Video = typeof videos.$inferSelect;
 export type NewVideo = typeof videos.$inferInsert;
+export type SocialPost = typeof socialPosts.$inferSelect;
+export type NewSocialPost = typeof socialPosts.$inferInsert;
