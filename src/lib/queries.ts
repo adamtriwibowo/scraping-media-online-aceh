@@ -104,18 +104,63 @@ export async function getSitesWithStats() {
   return db.select().from(sites).orderBy(desc(sites.articleCount));
 }
 
-export async function getStatsSummary() {
+export type StatsGranularity = "day" | "month" | "year";
+
+export type StatsFilters = {
+  from?: string;
+  to?: string;
+  granularity?: StatsGranularity;
+};
+
+const PERIOD_FORMAT: Record<StatsGranularity, string> = {
+  day: "YYYY-MM-DD",
+  month: "YYYY-MM",
+  year: "YYYY",
+};
+
+const DEFAULT_TREND_WINDOW: Record<StatsGranularity, SQL> = {
+  day: sql`now() - interval '30 days'`,
+  month: sql`now() - interval '12 months'`,
+  year: sql`now() - interval '5 years'`,
+};
+
+export async function getStatsSummary(filters: StatsFilters = {}) {
   const db = getDb();
+  const dateExpr = sql`coalesce(${articles.publishedAt}, ${articles.scrapedAt})`;
+  const granularity = filters.granularity ?? "day";
+
+  const dateConditions: SQL[] = [];
+  if (filters.from) {
+    dateConditions.push(gte(dateExpr, new Date(filters.from)));
+  }
+  if (filters.to) {
+    const to = new Date(filters.to);
+    to.setHours(23, 59, 59, 999);
+    dateConditions.push(lte(dateExpr, to));
+  }
+  const dateWhere = dateConditions.length > 0 ? and(...dateConditions) : undefined;
+
+  // The trend chart needs a bounded window even with no explicit filter —
+  // otherwise it groups the entire history into one bar per period.
+  const trendWhere = dateWhere ?? gte(dateExpr, DEFAULT_TREND_WINDOW[granularity]);
+  // sql.raw (not a bound parameter) so every reference to periodExpr below
+  // — in SELECT, GROUP BY, and ORDER BY — produces byte-identical SQL text;
+  // Postgres requires the GROUP BY expression to structurally match the
+  // SELECT one, which three separate parameter placeholders (even bound to
+  // the same value) do not satisfy. The format is one of PERIOD_FORMAT's
+  // fixed literals, never user input, so inlining it is safe.
+  const periodExpr = sql<string>`to_char(${dateExpr}, ${sql.raw(`'${PERIOD_FORMAT[granularity]}'`)})`;
 
   // Each of these is an independent round-trip to Neon over HTTP — running
   // them concurrently instead of one-by-one turns 5x network latency into 1x.
-  const [[totals], byCategory, bySite, byDay, topKeywords] = await Promise.all([
+  const [[totals], byCategory, bySite, trend, topKeywords] = await Promise.all([
     db
       .select({
         totalArticles: sql<number>`count(*)::int`,
         totalSites: sql<number>`count(distinct ${articles.siteId})::int`,
       })
-      .from(articles),
+      .from(articles)
+      .where(dateWhere),
     db
       .select({
         category: sites.category,
@@ -123,6 +168,7 @@ export async function getStatsSummary() {
       })
       .from(articles)
       .innerJoin(sites, eq(articles.siteId, sites.id))
+      .where(dateWhere)
       .groupBy(sites.category),
     db
       .select({
@@ -131,28 +177,30 @@ export async function getStatsSummary() {
       })
       .from(articles)
       .innerJoin(sites, eq(articles.siteId, sites.id))
+      .where(dateWhere)
       .groupBy(sites.name)
       .orderBy(desc(sql`count(*)`))
       .limit(15),
     db
       .select({
-        day: sql<string>`to_char(coalesce(${articles.publishedAt}, ${articles.scrapedAt}), 'YYYY-MM-DD')`,
+        period: periodExpr,
         count: sql<number>`count(*)::int`,
       })
       .from(articles)
-      .where(sql`coalesce(${articles.publishedAt}, ${articles.scrapedAt}) > now() - interval '30 days'`)
-      .groupBy(sql`to_char(coalesce(${articles.publishedAt}, ${articles.scrapedAt}), 'YYYY-MM-DD')`)
-      .orderBy(sql`to_char(coalesce(${articles.publishedAt}, ${articles.scrapedAt}), 'YYYY-MM-DD')`),
+      .where(trendWhere)
+      .groupBy(periodExpr)
+      .orderBy(periodExpr),
     db
       .select({
         keyword: sql<string>`unnest(${articles.matchedKeywords})`,
         count: sql<number>`count(*)::int`,
       })
       .from(articles)
+      .where(dateWhere)
       .groupBy(sql`unnest(${articles.matchedKeywords})`)
       .orderBy(desc(sql`count(*)`))
       .limit(10),
   ]);
 
-  return { totals, byCategory, bySite, byDay, topKeywords };
+  return { totals, byCategory, bySite, trend, topKeywords, granularity };
 }

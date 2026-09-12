@@ -15,9 +15,26 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type SiteCount = { siteName: string; count: number };
-type DayCount = { day: string; count: number };
+type PeriodCount = { period: string; count: number };
 type CategoryCount = { category: string; count: number };
 type KeywordCount = { keyword: string; count: number };
+type Granularity = "day" | "month" | "year";
+
+const trendTitle: Record<Granularity, string> = {
+  day: "Tren Harian",
+  month: "Tren Bulanan",
+  year: "Tren Tahunan",
+};
+
+function formatPeriodTick(period: string, granularity: Granularity) {
+  if (granularity === "year") return period;
+  if (granularity === "month") {
+    const [year, month] = period.split("-");
+    const date = new Date(Number(year), Number(month) - 1, 1);
+    return date.toLocaleDateString("id-ID", { month: "short", year: "2-digit" });
+  }
+  return period.slice(5);
+}
 
 const tooltipStyle = {
   background: "var(--popover)",
@@ -57,11 +74,11 @@ export function TopSitesChart({ data }: { data: SiteCount[] }) {
   );
 }
 
-export function TrendChart({ data }: { data: DayCount[] }) {
+export function TrendChart({ data, granularity = "day" }: { data: PeriodCount[]; granularity?: Granularity }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Tren 30 Hari Terakhir</CardTitle>
+        <CardTitle className="text-base">{trendTitle[granularity]}</CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={280}>
@@ -74,15 +91,18 @@ export function TrendChart({ data }: { data: DayCount[] }) {
             </defs>
             <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 3" />
             <XAxis
-              dataKey="day"
+              dataKey="period"
               tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
               axisLine={{ stroke: "var(--border)" }}
               tickLine={false}
-              tickFormatter={(v: string) => v.slice(5)}
+              tickFormatter={(v: string) => formatPeriodTick(v, granularity)}
               minTickGap={20}
             />
             <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} width={32} />
-            <Tooltip contentStyle={tooltipStyle} />
+            <Tooltip
+              contentStyle={tooltipStyle}
+              labelFormatter={(v) => formatPeriodTick(String(v), granularity)}
+            />
             <Area
               type="monotone"
               dataKey="count"
